@@ -43,7 +43,7 @@ app.use(function(err, req, res, next) {
   });
 });
 
-// Run every-midnight to check if bus deporting date is passed
+// Run every-midnight to check if bus deporting date is passed 
 runEveryMidnight();
 
 const port = process.env.PORT || 8525;
