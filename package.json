@@ -30,5 +30,8 @@
     "rotating-file-stream": "^1.4.3",
     "sharp": "^0.23.0",
     "uuid": "^3.3.3"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.15"
   }
 }
