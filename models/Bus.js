@@ -61,6 +61,23 @@ const busSchema = new mongoose.Schema(
       trim: true,
       maxlength: 32
     },
+    arrival_time: {
+      type: String,
+      trim: true,
+      maxlength: 32
+    },
+    carrierBrand: {
+      type: String,
+      trim: true,
+      required: true,
+      maxlength: 32
+    },
+    carrierBus: {
+      type: String,
+      trim: true,
+      required: true,
+      maxlength: 32
+    },
     isAvailable: {
       type: Boolean,
       default: false
@@ -70,7 +87,10 @@ const busSchema = new mongoose.Schema(
     endLocation: { type: ObjectId, ref: "Location" },
 
     journeyDate: {
-      type: String
+      type: String,
+    },
+    arrivalDate: {
+      type: String,
     },
     owner: {
       type: ObjectId,
@@ -86,6 +106,11 @@ const busSchema = new mongoose.Schema(
       {
         type: String,
         trim: true
+      }
+    ],
+    wayStations: [
+      {
+        type: String,
       }
     ],
     slug: {

@@ -81,6 +81,7 @@ exports.searchBus = async (req, res) => {
     .populate("startLocation", "name")
     .populate("endLocation", "name");
 
+    console.log('bus', bus)
   return res.json(bus);
 };
 
