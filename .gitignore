@@ -3,3 +3,4 @@ yarn.lock
 .env
 access.log
 uploads/busimage/*
+log
