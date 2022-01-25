@@ -1,1 +1,3 @@
 # NovaTransBackEnd
+
+yarn start
