@@ -4,6 +4,14 @@ mongoose.plugin(slug);
 
 const { ObjectId } = mongoose.Schema;
 
+const StationSchema = new mongoose.Schema({
+  id: String,
+  date: String,
+  time: String,
+  city: String,
+  station: String,
+})
+
 const busSchema = new mongoose.Schema(
   {
     name: {
@@ -108,11 +116,7 @@ const busSchema = new mongoose.Schema(
         trim: true
       }
     ],
-    wayStations: [
-      {
-        type: String,
-      }
-    ],
+    wayStations: [StationSchema],
     slug: {
       type: String,
       slug: "name",
