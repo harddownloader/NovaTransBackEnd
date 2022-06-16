@@ -19,7 +19,7 @@ const guestSchema = new mongoose.Schema({
     },
     phone: {
         type: Number,
-        max : 9999999999,
+        max : 999999999999,
         min: 9000000000,
         required: true
     }
