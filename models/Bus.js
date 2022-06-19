@@ -97,6 +97,9 @@ const busSchema = new mongoose.Schema(
     journeyDate: {
       type: String,
     },
+    journeyDateObj: {
+      type: Date,
+    },
     arrivalDate: {
       type: String,
     },

@@ -71,10 +71,18 @@ exports.searchBus = async (req, res) => {
 
   const { startLocation, endLocation, journeyDate } = req.query;
 
+  const journeyDateFrom = new Date(journeyDate)
+  const journeyDateTo = new Date(journeyDate)
+  journeyDateTo.setMonth(journeyDateTo.getMonth() + 1)
+
   const bus = await Bus.find({
     startLocation,
     endLocation,
-    journeyDate,
+    // journeyDate, //
+    journeyDateObj: {
+      $gte: journeyDateFrom, 
+      $lt: journeyDateTo,
+    },
     isAvailable: true
   })
     .populate("travel", "name")
@@ -102,6 +110,7 @@ exports.searchBusByFilter = async (req, res) => {
 };
 
 exports.create = async (req, res) => {
+
   const busExists = await Bus.findOne({ busNumber: req.body.busNumber });
   if (busExists)
     return res.status(403).json({
@@ -120,6 +129,7 @@ exports.create = async (req, res) => {
     req.body.image = "busimage/resized/" + image;
   }
 
+  // boardingPoints and droppingPoints we can delete
   if (req.body.boardingPoints) {
     req.body.boardingPoints = req.body.boardingPoints.split(",");
   }
@@ -127,6 +137,8 @@ exports.create = async (req, res) => {
   if (req.body.droppingPoints) {
     req.body.droppingPoints = req.body.droppingPoints.split(",");
   }
+
+  if (req?.body) req.body = prepareBody(req.body)
 
   const bus = new Bus(req.body);
 
@@ -142,10 +154,13 @@ exports.create = async (req, res) => {
 };
 
 exports.update = async (req, res) => {
+
+  if (req?.body) req.body = prepareBody(req.body) 
+
   if (req.file !== undefined) {
     const { filename: image } = req.file;
 
-    //Compress image
+    // Compress image
     await sharp(req.file.path)
       .resize(800)
       .jpeg({ quality: 100 })
@@ -171,3 +186,27 @@ exports.remove = async (req, res) => {
   await bus.remove();
   res.json({ message: "Bus removed successfully" });
 };
+
+// body Builder
+function prepareBody(body) {
+  // decrypt objects and arrays
+  if (body?.wayStations) body.wayStations = getWayStations(body.wayStations)
+  // set date journery like object (for searching tickets)
+  if (body?.journeyDate) body.journeyDateObj = new Date(body.journeyDate)
+
+  return body
+}
+
+function getWayStations(wayStations) {
+  if (Array.isArray(wayStations)) {
+    // if it has some stations
+    wayStations = wayStations.map(station => JSON.parse(station))
+  } else if (
+    typeof wayStations === 'string'
+  ) {
+    // if it has a station
+    wayStations = JSON.parse(wayStations)
+  }
+
+  return wayStations
+}
