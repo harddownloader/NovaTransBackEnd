@@ -75,12 +75,18 @@ exports.searchBus = async (req, res) => {
   const journeyDateTo = new Date(journeyDate)
   journeyDateTo.setMonth(journeyDateTo.getMonth() + 1)
 
-  const bus = await Bus.find({
-    startLocation,
-    endLocation,
-    // journeyDate, //
+  const buses = await Bus.find({
+    // startLocation,
+    // endLocation,
+    wayStations: {
+      $all: [
+        { "$elemMatch": {"city": startLocation}},
+        { "$elemMatch": {"city": endLocation}},
+      ]
+    },
+   
     journeyDateObj: {
-      $gte: journeyDateFrom, 
+      $gte: journeyDateFrom,
       $lt: journeyDateTo,
     },
     isAvailable: true
@@ -89,8 +95,13 @@ exports.searchBus = async (req, res) => {
     .populate("startLocation", "name")
     .populate("endLocation", "name");
 
-    console.log('bus', bus)
-  return res.json(bus);
+  const result = buses.filter(bus => {
+    const startIndx = bus.wayStations.findIndex(station => station.city === startLocation)
+    const endIndx = bus.wayStations.findIndex(station => station.city === endLocation)
+
+    return startIndx < endIndx
+  })
+  return res.json(result);
 };
 
 exports.searchBusByFilter = async (req, res) => {
