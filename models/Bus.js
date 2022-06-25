@@ -9,6 +9,7 @@ const StationSchema = new mongoose.Schema({
   date: String,
   time: String,
   city: String,
+  cityId: String,
   station: String,
 })
 
@@ -37,7 +38,7 @@ const busSchema = new mongoose.Schema(
       maxlength: 32
     },
     features: {
-      type: []
+      type: String
     },
     description: {
       type: String,
