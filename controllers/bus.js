@@ -80,8 +80,8 @@ exports.searchBus = async (req, res) => {
     // endLocation,
     wayStations: {
       $all: [
-        { "$elemMatch": {"city": startLocation}},
-        { "$elemMatch": {"city": endLocation}},
+        { "$elemMatch": {"cityId": startLocation}},
+        { "$elemMatch": {"cityId": endLocation}},
       ]
     },
    
@@ -96,8 +96,8 @@ exports.searchBus = async (req, res) => {
     .populate("endLocation", "name");
 
   const result = buses.filter(bus => {
-    const startIndx = bus.wayStations.findIndex(station => station.city === startLocation)
-    const endIndx = bus.wayStations.findIndex(station => station.city === endLocation)
+    const startIndx = bus.wayStations.findIndex(station => station.cityId === startLocation)
+    const endIndx = bus.wayStations.findIndex(station => station.cityId === endLocation)
 
     return startIndx < endIndx
   })
