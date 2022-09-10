@@ -69,40 +69,110 @@ exports.searchBus = async (req, res) => {
   if (_.size(req.query) < 1)
     return res.status(400).json({ error: "Invalid query" });
 
-  const { startLocation, endLocation, journeyDate } = req.query;
+  const {
+    startLocation,
+    endLocation,
+    journeyDate,
+    returnStartLocation=null,
+    returnEndLocation=null,
+    returnJourneyDate=null,
+  } = req.query;
 
   const journeyDateFrom = new Date(journeyDate)
   const journeyDateTo = new Date(journeyDate)
   journeyDateTo.setMonth(journeyDateTo.getMonth() + 1)
 
-  const buses = await Bus.find({
-    // startLocation,
-    // endLocation,
-    wayStations: {
-      $all: [
-        { "$elemMatch": {"cityId": startLocation}},
-        { "$elemMatch": {"cityId": endLocation}},
-      ]
-    },
-   
-    journeyDateObj: {
-      $gte: journeyDateFrom,
-      $lt: journeyDateTo,
-    },
-    isAvailable: true
-  })
-    .populate("travel", "name")
-    .populate("startLocation", "name")
-    .populate("endLocation", "name");
+  const result  = {
+    
+    oneWayTickets: await BusesSearcher({
+      isRoundTrip: false,
+      start: startLocation,
+      end: endLocation,
+      dateFrom: journeyDateFrom,
+      dateTo: journeyDateTo
+    }).search().then(instance => instance.filter().build())
+  }
 
-  const result = buses.filter(bus => {
-    const startIndx = bus.wayStations.findIndex(station => station.cityId === startLocation)
-    const endIndx = bus.wayStations.findIndex(station => station.cityId === endLocation)
+  if (
+    returnStartLocation &&
+    returnEndLocation &&
+    returnJourneyDate
+  ) {
+    const returnJourneyDateFrom = new Date(returnJourneyDate)
+    const returnJourneyDateTo = new Date(returnJourneyDate)
+    returnJourneyDateTo.setMonth(returnJourneyDateTo.getMonth() + 1)
 
-    return startIndx < endIndx
-  })
+    result.returnTickets = await BusesSearcher({
+      isRoundTrip: true,
+      start: returnStartLocation,
+      end: returnEndLocation,
+      dateFrom: returnJourneyDateFrom,
+      dateTo: returnJourneyDateTo
+    }).search().then(instance => instance.filter().build())
+  }
+
   return res.json(result);
 };
+
+function BusesSearcher({ start, end, dateFrom, dateTo, isRoundTrip }) {
+  return {
+    isRoundTrip: isRoundTrip,
+    tickets: [],
+    search: async function () {
+      let searchReq
+      if (!this.isRoundTrip) searchReq = {
+          wayStations: {
+            $all: [
+              { "$elemMatch": {"cityId": start}},
+              { "$elemMatch": {"cityId": end}},
+            ]
+          },
+        
+          journeyDateObj: {
+            $gte: dateFrom,
+            $lt: dateTo,
+          },
+          isAvailable: true
+        }
+      else searchReq = {
+          wayStations: {
+            $all: [
+              { "$elemMatch": {"cityId": start}},
+              { "$elemMatch": {"cityId": end}},
+            ]
+          },
+        
+          journeyDateObj: {
+            $gte: dateFrom,
+            $lt: dateTo,
+          },
+          isAvailable: true
+        }
+
+      this.tickets = await Bus.find(searchReq)
+        .populate("travel", "name")
+        .populate("startLocation", "name")
+        .populate("endLocation", "name");
+      
+      return this
+    },
+    filter: function() {
+      const newTicketsList = this.tickets.filter((bus) => {
+        const startIndx = bus.wayStations.findIndex(station => station.cityId === start)
+        const endIndx = bus.wayStations.findIndex(station => station.cityId === end)
+    
+        return startIndx < endIndx
+      })
+
+      this.tickets = newTicketsList
+      
+      return this
+    },
+    build: function () {
+      return this.tickets
+    }
+  }
+}
 
 exports.searchBusByFilter = async (req, res) => {
   const { startLocation, endLocation, journeyDate, travel, type } = req.body;
@@ -188,6 +258,15 @@ exports.update = async (req, res) => {
   }
 
   await bus.save();
+
+  if (bus.body.type === "регулярный") {
+    console.log('it"s regular!')
+    // 1 variant = it was regular => regenerate children
+    // 2 variant = it was simple => generate children
+
+    // if has some children -> kill them
+    // generate children
+  }
 
   res.json(bus);
 };
