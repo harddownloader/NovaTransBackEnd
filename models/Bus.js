@@ -23,7 +23,7 @@ const busSchema = new mongoose.Schema(
     },
     type: {
       type: String,
-      enum: ["AC", "Delux", "Normal", "Suspense AC", "Suspense Delux"]
+      enum: ["AC", "Delux", "Normal", "Suspense AC", "Suspense Delux", "обычный", "регулярный"]
     },
     busNumber: {
       type: String,
