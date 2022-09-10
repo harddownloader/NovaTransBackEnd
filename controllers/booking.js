@@ -31,6 +31,25 @@ exports.getOwnerBookings = async (req, res) => {
 
 exports.postBooking = async (req, res) => {
   const seats = JSON.parse(req.body?.seatNumber); // array with strings
+  const bookData = {...req.body};
+  const userauth = req?.userauth;
+  const slug = req.bus.slug;
+
+  if (
+    !userauth && (
+      !req.body?.name ||
+      !req.body?.email ||
+      !req.body?.phone ||
+      !req.body?.address
+    )
+  ) return res.status(400).json({
+    error: "User data isn't correct"
+  });
+
+  if (!slug) return res.status(400).json({
+    error: "Ticket hasn't slug",
+  });
+
   if (
     !seats?.length ||
     !Array.isArray(seats)
@@ -39,20 +58,112 @@ exports.postBooking = async (req, res) => {
   });
 
   
+  const bookedTicket = await setNewPostBooking(
+    userauth,
+    bookData, 
+    seats,
+    slug
+  );  
+
+  res.json(bookedTicket);
+};
+/**
+ * booking tickets by a user/guest
+ * @param {*} req 
+ * @param {*} res 
+ * @returns 
+ * body: {
+ *  userauth?
+ *  
+ *  name: 'John',
+ *  email: 'john@gmail.com',
+ *  phone: 1823673827712,
+ *  address: 'Lendersa 8'
+ *  tickets: [
+ *    {
+ *      seats: ['A1', 'A2'],
+ *      slug: 'toronto-boston'
+ *    }
+ *  ]
+ * }
+ */
+exports.postBookingMulti = async (req, res) => {
+  const bookData = {...req.body}
+  const userauth = req?.userauth
+  if (
+    !userauth && (
+      !req.body?.name ||
+      !req.body?.email ||
+      !req.body?.phone ||
+      !req.body?.address
+    )
+  ) return res.status(400).json({
+    error: "User data isn't correct"
+  });
+
+  const tickets = req.body?.tickets;
+  if (
+    !tickets ||
+    !Array.isArray(tickets) ||
+    tickets.every((ticket) => Boolean(
+      !ticket.seatNumber ||
+      !ticket.slug
+    ))
+  ) return res.status(400).json({
+    error: "Uncorrect tickets format",
+  });
+  
+
+  const allBookedTickets = tickets.map(async (ticket) => {
+    const seats = JSON.parse(ticket?.seatNumber); // array with strings
+    const slug = ticket?.slug
+    if (
+      !seats?.length ||
+      !Array.isArray(seats)
+    ) return res.status(400).json({
+      error: "Seats not selected",
+    });
+
+    if (!slug) return res.status(400).json({
+      error: "Ticket hasn't slug",
+    });
+
+    
+    const bookedTicket = await setNewPostBooking(
+      userauth,
+      bookData, 
+      seats,
+      slug
+    );
+    return bookedTicket;
+  });
+
+  return res.json(allBookedTickets);
+}
+
+/**
+ * 
+ * @param {*} userauth
+ * @param {object} bookData 
+ * @param {array} seats 
+ * @param {string} slug 
+ * @returns array
+ */
+async function setNewPostBooking(userauth, bookData, seats, slug) {
   const allOrders = seats.map(async (seatTicket) => {
-    const booking = new Booking(req.body);
-    if (req.userauth) {
-      booking.user = req.userauth;
+    const booking = new Booking(bookData);
+    if (userauth) {
+      booking.user = userauth;
     } else {
-      const name = req.body.name;
-      const email = req.body.email;
-      const phone = req.body.phone;
-      const address = req.body.address;
+      const name = bookData.name;
+      const email = bookData.email;
+      const phone = bookData.phone;
+      const address = bookData.address;
 
       let user = await Guest.findOne({ phone });
 
       if (user) {
-        user = _.extend(user, req.body);
+        user = _.extend(user, bookData);
         await user.save();
         booking.guest = user;
       } else {
@@ -62,8 +173,7 @@ exports.postBooking = async (req, res) => {
       }
     }
 
-    const bus = await Bus.findOne({ slug: req.bus.slug });
-
+    const bus = await Bus.findOne({ slug: slug });
     
     // check
     let isValidSeatNumber = true;
@@ -76,7 +186,7 @@ exports.postBooking = async (req, res) => {
     }
 
     if (
-      bus.seatsAvailable < (req.body.passengers || booking.passengers) ||
+      bus.seatsAvailable < (bookData.passengers || booking.passengers) ||
       bus.isAvailable !== true ||
       !isValidSeatNumber
     ) {
@@ -85,7 +195,7 @@ exports.postBooking = async (req, res) => {
       });
     }
 
-    bus.seatsAvailable -= req.body.passengers || booking.passengers;
+    bus.seatsAvailable -= bookData.passengers || booking.passengers;
 
     bus.bookedSeat.push(seatTicket);
 
@@ -98,10 +208,9 @@ exports.postBooking = async (req, res) => {
     await bus.save();
     return await booking.save();
   });
-  
 
-  res.json(allOrders);
-};
+  return allOrders;
+}
 
 exports.postSold = async (req, res) => {
   const seats = JSON.parse(req.body?.seatNumber); // array with strings
