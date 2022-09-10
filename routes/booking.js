@@ -5,6 +5,7 @@ const {
   getOwnerBookings,
   changeVerificationStatus,
   postBooking,
+  postBookingMulti,
   postSold,
   deleteBooking,
   getAllBookings
@@ -21,8 +22,9 @@ const { busBySlug } = require("../controllers/bus");
 router.get("/my", requireOwnerSignin, getOwnerBookings);
 router.get("/all", requireSuperadminSignin, getAllBookings);
 
-router.post("/sold/:busSlug", requireOwnerSignin, postSold)
+router.post("/sold/:busSlug", requireOwnerSignin, postSold);
 router.post("/book/:busSlug", checkUserSignin, postBooking);
+router.post("/milti-book", checkUserSignin, postBookingMulti);
 
 router.patch("/:bookingId", requireOwnerSignin, changeVerificationStatus);
 router.delete("/:bookingId", requireOwnerSignin, isBookingOwner, deleteBooking);
