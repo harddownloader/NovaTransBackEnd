@@ -30,83 +30,239 @@ exports.getOwnerBookings = async (req, res) => {
 };
 
 exports.postBooking = async (req, res) => {
-  const booking = new Booking(req.body);
-  if (req.userauth) {
-    booking.user = req.userauth;
-  } else {
-    const name = req.body.name;
-    const email = req.body.email;
-    const phone = req.body.phone;
-    const address = req.body.address;
-
-    let user = await Guest.findOne({ phone });
-
-    if (user) {
-      user = _.extend(user, req.body);
-      await user.save();
-      booking.guest = user;
-    } else {
-      const guest = new Guest({ name, email, phone, address });
-      await guest.save();
-      booking.guest = guest;
-    }
-  }
-
-  const bus = await Bus.findOne({ slug: req.bus.slug });
+  const seats = JSON.parse(req.body?.seatNumber); // array with strings
+  const bookData = {...req.body};
+  const userauth = req?.userauth;
+  const slug = req.bus.slug;
 
   if (
-    bus.seatsAvailable < (req.body.passengers || booking.passengers) ||
-    bus.isAvailable !== true ||
-    bus.soldSeat.includes(booking.seatNumber) ||
-    bus.bookedSeat.includes(booking.seatNumber)
-  ) {
-    return res.status(400).json({
-      error: "Not available"
-    });
-  }
+    !userauth && (
+      !req.body?.name ||
+      !req.body?.email ||
+      !req.body?.phone ||
+      !req.body?.address
+    )
+  ) return res.status(400).json({
+    error: "User data isn't correct"
+  });
 
-  bus.seatsAvailable -= req.body.passengers || booking.passengers;
+  if (!slug) return res.status(400).json({
+    error: "Ticket hasn't slug",
+  });
 
-  bus.bookedSeat.push(booking.seatNumber);
+  if (
+    !seats?.length ||
+    !Array.isArray(seats)
+  ) return res.status(400).json({
+    error: "Not available"
+  });
 
-  booking.bus = bus;
-  booking.owner = bus.owner;
+  
+  const bookedTicket = await setNewPostBooking(
+    userauth,
+    bookData, 
+    seats,
+    slug
+  );  
 
-  await booking.save();
-  await bus.save();
-
-  res.json(booking);
+  res.json(bookedTicket);
 };
+/**
+ * booking tickets by a user/guest
+ * @param {*} req 
+ * @param {*} res 
+ * @returns 
+ * body: {
+ *  userauth?
+ *  
+ *  name: 'John',
+ *  email: 'john@gmail.com',
+ *  phone: 1823673827712,
+ *  address: 'Lendersa 8'
+ *  tickets: [
+ *    {
+ *      seats: ['A1', 'A2'],
+ *      slug: 'toronto-boston'
+ *    }
+ *  ]
+ * }
+ */
+exports.postBookingMulti = async (req, res) => {
+  const bookData = {...req.body}
+  const userauth = req?.userauth
+  if (
+    !userauth && (
+      !req.body?.name ||
+      !req.body?.email ||
+      !req.body?.phone ||
+      !req.body?.address
+    )
+  ) return res.status(400).json({
+    error: "User data isn't correct"
+  });
+
+  const tickets = req.body?.tickets;
+  if (
+    !tickets ||
+    !Array.isArray(tickets) ||
+    tickets.every((ticket) => Boolean(
+      !ticket.seatNumber ||
+      !ticket.slug
+    ))
+  ) return res.status(400).json({
+    error: "Uncorrect tickets format",
+  });
+  
+
+  const allBookedTickets = tickets.map(async (ticket) => {
+    const seats = JSON.parse(ticket?.seatNumber); // array with strings
+    const slug = ticket?.slug
+    if (
+      !seats?.length ||
+      !Array.isArray(seats)
+    ) return res.status(400).json({
+      error: "Seats not selected",
+    });
+
+    if (!slug) return res.status(400).json({
+      error: "Ticket hasn't slug",
+    });
+
+    
+    const bookedTicket = await setNewPostBooking(
+      userauth,
+      bookData, 
+      seats,
+      slug
+    );
+    return bookedTicket;
+  });
+
+  return res.json(allBookedTickets);
+}
+
+/**
+ * 
+ * @param {*} userauth
+ * @param {object} bookData 
+ * @param {array} seats 
+ * @param {string} slug 
+ * @returns array
+ */
+async function setNewPostBooking(userauth, bookData, seats, slug) {
+  const allOrders = seats.map(async (seatTicket) => {
+    const booking = new Booking(bookData);
+    if (userauth) {
+      booking.user = userauth;
+    } else {
+      const name = bookData.name;
+      const email = bookData.email;
+      const phone = bookData.phone;
+      const address = bookData.address;
+
+      let user = await Guest.findOne({ phone });
+
+      if (user) {
+        user = _.extend(user, bookData);
+        await user.save();
+        booking.guest = user;
+      } else {
+        const guest = new Guest({ name, email, phone, address });
+        await guest.save();
+        booking.guest = guest;
+      }
+    }
+
+    const bus = await Bus.findOne({ slug: slug });
+    
+    // check
+    let isValidSeatNumber = true;
+    if (
+        typeof seatTicket === 'string' &&
+        bus.soldSeat.includes(seatTicket) ||
+        bus.bookedSeat.includes(seatTicket)
+    ) {
+      isValidSeatNumber = false;
+    }
+
+    if (
+      bus.seatsAvailable < (bookData.passengers || booking.passengers) ||
+      bus.isAvailable !== true ||
+      !isValidSeatNumber
+    ) {
+      return res.status(400).json({
+        error: "Not available"
+      });
+    }
+
+    bus.seatsAvailable -= bookData.passengers || booking.passengers;
+
+    bus.bookedSeat.push(seatTicket);
+
+    booking.bus = bus;
+    booking.owner = bus.owner;
+
+    booking.seatNumber = seatTicket;
+    
+
+    await bus.save();
+    return await booking.save();
+  });
+
+  return allOrders;
+}
 
 exports.postSold = async (req, res) => {
-  const booking = new Booking(req.body);
-  booking.self = req.ownerauth;
-
-  const bus = await Bus.findOne({ slug: req.bus.slug });
-
+  const seats = JSON.parse(req.body?.seatNumber); // array with strings
   if (
-    bus.seatsAvailable < booking.passengers ||
-    bus.isAvailable !== true ||
-    bus.soldSeat.includes(booking.seatNumber) ||
-    bus.bookedSeat.includes(booking.seatNumber)
-  ) {
-    return res.status(400).json({
-      error: "Not available"
-    });
-  }
+    !seats?.length ||
+    !Array.isArray(seats)
+  ) return res.status(400).json({
+    error: "Not available"
+  });
 
-  bus.seatsAvailable -= booking.passengers;
+  
+  const allOrders = seats.map(async (seatTicket) => {
+    const booking = new Booking(req.body);
+    booking.self = req.ownerauth;
 
-  bus.soldSeat.push(booking.seatNumber);
+    const bus = await Bus.findOne({ slug: req.bus.slug });
 
-  booking.bus = bus;
-  booking.owner = bus.owner;
-  booking.verification = "payed";
+    // check 
+    let isValidSeatNumber = true;
+    if (
+      typeof seatTicket === 'string' &&
+      bus.soldSeat.includes(seatTicket) ||
+      bus.bookedSeat.includes(seatTicket)
+    ) {
+      isValidSeatNumber = false;
+    }
 
-  await booking.save();
-  await bus.save();
+    if (
+      bus.seatsAvailable < booking.passengers ||
+      bus.isAvailable !== true ||
+      !isValidSeatNumber
+    ) {
+      return res.status(400).json({
+        error: "Not available"
+      });
+    }
 
-  res.json(booking);
+    bus.seatsAvailable -= booking.passengers;
+
+    bus.soldSeat.push(seatTicket);
+
+    booking.bus = bus;
+    booking.owner = bus.owner;
+    booking.verification = "payed";
+
+    booking.seatNumber = seatTicket;
+    
+    await bus.save();
+    return await booking.save();
+  });
+
+  res.json(allOrders);
 };
 
 exports.changeVerificationStatus = async (req, res) => {
