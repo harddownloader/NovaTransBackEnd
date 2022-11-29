@@ -1,5 +1,5 @@
 const CronJob = require("cron").CronJob;
-const Bus = require("../models/Bus");
+const { Bus } = require("../models/Bus");
 
 exports.checkDateAvailability = date => {
   if (new Date(date) < new Date()) {
@@ -31,6 +31,6 @@ exports.runEveryMidnight = () => {
     },
     null,
     true,
-    "Asia/Katmandu"
+    "Europe/Kyiv"
   );
 };
