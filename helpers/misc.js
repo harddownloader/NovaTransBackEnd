@@ -31,6 +31,6 @@ exports.runEveryMidnight = () => {
     },
     null,
     true,
-    "Europe/Kyiv"
+    "Europe/Kiev" // you need change it after update cron package => "Europe/Kiev" is old name of this timezone, new is "Europe/Kyiv"
   );
 };
