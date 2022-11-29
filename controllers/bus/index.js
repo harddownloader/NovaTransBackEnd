@@ -139,7 +139,8 @@ function BusesSearcher({ start, end, dateFrom, dateTo, isRoundTrip }) {
                     $gte: dateFrom,
                     $lt: dateTo,
                 },
-                isAvailable: true
+                isAvailable: true,
+                type: typeEnumSimpleTrip,
             }
             else searchReq = {
                 wayStations: {
@@ -153,7 +154,8 @@ function BusesSearcher({ start, end, dateFrom, dateTo, isRoundTrip }) {
                     $gte: dateFrom,
                     $lt: dateTo,
                 },
-                isAvailable: true
+                isAvailable: true,
+                type: typeEnumSimpleTrip,
             }
 
             this.tickets = await Bus.find(searchReq)
