@@ -289,6 +289,25 @@ exports.update = async (req, res) => {
     res.json(bus);
 };
 
+
+// rm all children
+function deleteAllChildren(isRmAllChildren, busId) {
+  const promise = new Promise((resolve, reject) => {
+    if (isRmAllChildren) Bus.deleteMany({parentId: busId}, function (err) {
+      if (!err) {
+        console.log('All children removed');
+        resolve(true);
+      } else {
+        console.log('Removing children - error');
+        reject(false);
+      }
+    });
+  });
+
+  return promise;
+}
+
+
 async function generateChildren(bus, isRmAllChildren=false) {
   if (
     bus?.type === typeEnumRegularTrip &&
@@ -305,22 +324,7 @@ async function generateChildren(bus, isRmAllChildren=false) {
     }
     // console.log('it"s regular!', bus)
 
-    // rm all children
-    function deleteAllChildren(isRmAllChildren, busId) {
-      const promise = new Promise((resolve, reject) => {
-        if (isRmAllChildren) Bus.deleteMany({parentId: busId}, function (err) {
-          if (!err) {
-            console.log('All children removed');
-            resolve(true);
-          } else {
-            console.log('Removing children - error');
-            reject(false);
-          }
-        });
-      });
 
-      return promise;
-    }
     await deleteAllChildren(isRmAllChildren, bus._id);
 
 
@@ -432,20 +436,27 @@ async function generateChildren(bus, isRmAllChildren=false) {
 async function removeBus(req, res) {
   let bus = req.bus;
 
-  // rm reserved bus bookings
+  // remove simple trips of regular trip
+  if(bus.type === typeEnumRegularTrip) {
+    const isRmAllChildren = true;
+    await deleteAllChildren(isRmAllChildren, bus._id);
+  }
+
+  // remove reserved bus bookings
   Booking.remove({ bus: bus._id }, function(err) {
     if (!err) {
-      console.log('All children removed');
+      console.log('All bookings by trip removed');
     }
     else {
-      console.log('Removing children - error');
+      console.log('Removing all bookings by trip - error');
     }
   });
 
-  // rm bus
+  // remove current trip
   const rmBus = await bus.remove();
   return rmBus;
 };
+
 
 exports.remove = async (req, res) => {
   await removeBus(req, res);
