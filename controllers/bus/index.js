@@ -9,7 +9,13 @@ const _ = require("lodash");
 const sharp = require("sharp");
 const path = require("path");
 const fs = require("fs");
-const { checkDateAvailability } = require("../../helpers");
+const {
+  checkSimpleTripDate,
+  checkRegularTripDate,
+  setAvailabilityStatusForSimpleTrips,
+  setAvailabilityStatusForRegularTrips,
+} = require("../../helpers");
+
 
 exports.busBySlug = async (req, res, next, slug) => {
     const bus = await Bus.findOne({ slug }).populate("owner", "name role");
@@ -201,10 +207,6 @@ exports.searchBusByFilter = async (req, res) => {
 
 
 const createTrip = async (req, res) => {
-    // console.log('createTripFunc', {
-    //   slug: req.body.slug,
-    //   busNumber: req.body.busNumber
-    // });
 
     // checking if the same 'busNumber' already exists
     const busExists = await Bus.findOne({ busNumber: req.body.busNumber });
@@ -238,8 +240,17 @@ const createTrip = async (req, res) => {
 
     const bus = new Bus(req.body);
 
-    if (!checkDateAvailability(req.body.journeyDate)) {
-        bus.isAvailable = false;
+    // check date for simple trips
+    if (
+      checkSimpleTripDate(req.body)
+    ) {
+      setAvailabilityStatusForSimpleTrips(req.body);
+
+      // check date for regular trips
+    } else if (
+      checkRegularTripDate(req.body)
+    ) {
+      setAvailabilityStatusForRegularTrips(req.body);
     }
 
     bus.owner = req.ownerauth;
@@ -249,8 +260,12 @@ const createTrip = async (req, res) => {
     return bus;
 };
 
+
+/*
+* create trip endpoint
+*/
 exports.create = async (req, res) => {
-  const bus = createTrip(req, res);
+  const bus = await createTrip(req, res);
 
   await generateChildren(bus);
 
@@ -276,11 +291,19 @@ exports.update = async (req, res) => {
     let bus = req.bus;
     bus = _.extend(bus, req.body);
 
-    if (!checkDateAvailability(req.body.journeyDate)) {
-        bus.isAvailable = false;
+    // check date for simple trips
+    if (
+      checkSimpleTripDate(bus)
+    ) {
+      setAvailabilityStatusForSimpleTrips(bus);
+
+      // check date for regular trips
+    } else if (
+      checkRegularTripDate(bus)
+    ) {
+      setAvailabilityStatusForRegularTrips(bus);
     }
 
-    // console.log('bus', bus)
     await bus.save();
 
     const isRmAllChildren = true;
@@ -293,15 +316,19 @@ exports.update = async (req, res) => {
 // rm all children
 function deleteAllChildren(isRmAllChildren, busId) {
   const promise = new Promise((resolve, reject) => {
-    if (isRmAllChildren) Bus.deleteMany({parentId: busId}, function (err) {
-      if (!err) {
-        console.log('All children removed');
-        resolve(true);
-      } else {
-        console.log('Removing children - error');
-        reject(false);
-      }
-    });
+    if (isRmAllChildren) {
+      Bus.deleteMany({parentId: busId}, function (err) {
+        if (!err) {
+          console.log('All children removed');
+          resolve(true);
+        } else {
+          console.log('Removing children - error');
+          reject(false);
+        }
+      });
+    } else {
+      resolve(true);
+    }
   });
 
   return promise;
@@ -322,11 +349,9 @@ async function generateChildren(bus, isRmAllChildren=false) {
       console.log('you do not have all the data for scheduled flights');
       return;
     }
-    // console.log('it"s regular!', bus)
 
 
     await deleteAllChildren(isRmAllChildren, bus._id);
-
 
     // create all children again
 
@@ -338,11 +363,6 @@ async function generateChildren(bus, isRmAllChildren=false) {
       end = moment(bus.regularDateEnd), // last day or range
       daysOfTheWeek = [...new Set(bus.regularDaysOfTheWeek)]; // array with unique numbers - [1,2,3,4,5,6,0]
 
-    // console.log({
-    //   start,
-    //   end,
-    //   daysOfTheWeek,
-    // })
 
     daysOfTheWeek.map(async (dayOfTheWeek) => {
       const daysInRange = [];
@@ -352,10 +372,7 @@ async function generateChildren(bus, isRmAllChildren=false) {
         daysInRange.push(current.clone());
       }
 
-      // console.log('daysInRange', daysInRange.map(m => m.format('YYYY-MM-DD')));
-
       await daysInRange.map(async (day) => {
-        // console.log({day})
         const dayMomentObj = moment(day);
         const dayStr = dayMomentObj.format("YYYY-MM-DD");
         const dayOfDepartureFromTemplate = moment(bus.wayStations[0].date);
@@ -369,10 +386,7 @@ async function generateChildren(bus, isRmAllChildren=false) {
           numberOfSeats: bus.numberOfSeats,
           bookedSeat: [],
           soldSeat: [],
-          // boardingPoints
-          // droppingPoints
           features: bus?.features,
-          // wayStations: [],
           name: `${bus?.name} ${dayStr}`,
           fare: bus.fare,
           busNumber: `${bus?.busNumber} ${dayStr} ${bus._id}`, // нельзя, чтобы повторялся
@@ -388,14 +402,11 @@ async function generateChildren(bus, isRmAllChildren=false) {
           createdAt: bus.createdAt,
           updatedAt: bus.updatedAt,
           slug: `${bus.slug}-${dayStr}-${bus._id}`,
-          // __v: 34,
           endLocation: bus?.endLocation,
           travel: bus?.travel,
           startLocation: bus?.startLocation,
 
           type: typeEnumSimpleTrip,
-          // regularDateEnd: '2022-09-16',
-          // regularDateStart: '2022-09-09'
         };
 
         const wayStations = bus.wayStations.map((station) => {
@@ -409,14 +420,6 @@ async function generateChildren(bus, isRmAllChildren=false) {
         });
 
         trip.wayStations = wayStations;
-
-        // console.log('create trip', {
-        //   slug: `${bus.slug}-${dayStr}-${bus._id}`,
-        //   busSlug: bus.slug,
-        //   dayStr,
-        //   busId: bus._id,
-        //   day
-        // });
 
         await createTrip({
           ownerauth: bus.owner,
@@ -443,6 +446,7 @@ async function removeBus(req, res) {
   }
 
   // remove reserved bus bookings
+  // remove(is deprecated) -> deleteMany
   Booking.remove({ bus: bus._id }, function(err) {
     if (!err) {
       console.log('All bookings by trip removed');

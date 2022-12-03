@@ -1,17 +1,14 @@
 const CronJob = require("cron").CronJob;
 const {
   Bus,
-  typeEnumRegularTrip,
-  typeEnumSimpleTrip,
 } = require("../models/Bus");
+const {
+  checkSimpleTripDate,
+  checkRegularTripDate,
+  setAvailabilityStatusForSimpleTrips,
+  setAvailabilityStatusForRegularTrips
+} = require("./checkDateAvailability");
 
-exports.checkDateAvailability = date => {
-  if (new Date(date) < new Date()) {
-    return false;
-  } else {
-    return true;
-  }
-};
 
 exports.runEveryMidnight = () => {
 
@@ -24,32 +21,16 @@ exports.runEveryMidnight = () => {
       buses.map(async bus => {
         // check date for simple trips
         if (
-           bus.type === typeEnumSimpleTrip &&
-           bus?.wayStations &&
-           Array.isArray(bus.wayStations) &&
-           bus.wayStations.length
+          checkSimpleTripDate(bus)
         ) {
-           const start = bus.wayStations[0]
-           const dateTimeStr = `${start.date}T${start.time}:00`
-
-           if(!exports.checkDateAvailability(dateTimeStr)) {
-             bus.isAvailable = false;
-           }
+          setAvailabilityStatusForSimpleTrips(bus);
            await bus.save();
 
         // check date for regular trips
         } else if (
-           bus.type === typeEnumRegularTrip &&
-           bus?.wayStations &&
-           Array.isArray(bus.wayStations) &&
-           bus.wayStations.length
+          checkRegularTripDate(bus)
         ) {
-          const end = bus.wayStations[bus.wayStations.length - 1]
-          const dateTimeStr = `${end.date}T${end.time}:00`
-
-          if(!exports.checkDateAvailability(dateTimeStr)) {
-            bus.isAvailable = false;
-          }
+          setAvailabilityStatusForRegularTrips(bus);
           await bus.save();
         }
       })
