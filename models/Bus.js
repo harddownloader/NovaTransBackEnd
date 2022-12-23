@@ -11,7 +11,19 @@ const StationSchema = new mongoose.Schema({
   city: String,
   cityId: String,
   station: String,
-})
+});
+
+const typeEnumSimpleTrip = "обычный";
+const typeEnumRegularTrip = "регулярный";
+const typeEnum = [
+  "AC",
+  "Delux",
+  "Normal",
+  "Suspense AC",
+  "Suspense Delux",
+  typeEnumSimpleTrip,
+  typeEnumRegularTrip
+];
 
 const busSchema = new mongoose.Schema(
   {
@@ -23,13 +35,37 @@ const busSchema = new mongoose.Schema(
     },
     type: {
       type: String,
-      enum: ["AC", "Delux", "Normal", "Suspense AC", "Suspense Delux", "обычный", "регулярный"]
+      enum: typeEnum
+    },
+    regularDateStart: {
+      type: String,
+      trim: true,
+      maxlength: 32
+    },
+    regularDateEnd: {
+      type: String,
+      trim: true,
+      maxlength: 32
+    },
+    regularDaysOfTheWeek: {
+      type:  [{
+        type: Number
+      }]
+    },
+    regularDayOfTheWeek: {
+      type: Number,
+      trim: true,
+      maxlength: 1
+    },
+    parentId: {
+      type: ObjectId,
+      ref: "Bus"
     },
     busNumber: {
       type: String,
       trim: true,
       required: true,
-      maxlength: 32
+      maxlength: 64
     },
     fare: {
       type: Number,
@@ -131,4 +167,9 @@ const busSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-module.exports = mongoose.model("Bus", busSchema);
+module.exports = {
+  Bus: mongoose.model("Bus", busSchema),
+  typeEnumSimpleTrip,
+  typeEnumRegularTrip,
+  typeEnum
+}

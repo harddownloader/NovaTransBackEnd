@@ -1,13 +1,14 @@
 const CronJob = require("cron").CronJob;
-const Bus = require("../models/Bus");
+const {
+  Bus,
+} = require("../models/Bus");
+const {
+  checkSimpleTripDate,
+  checkRegularTripDate,
+  setAvailabilityStatusForSimpleTrips,
+  setAvailabilityStatusForRegularTrips
+} = require("./checkDateAvailability");
 
-exports.checkDateAvailability = date => {
-  if (new Date(date) < new Date()) {
-    return false;
-  } else {
-    return true;
-  }
-};
 
 exports.runEveryMidnight = () => {
 
@@ -18,19 +19,24 @@ exports.runEveryMidnight = () => {
       const buses = await Bus.find({});
 
       buses.map(async bus => {
-     
-       if(bus.journeyDate){
-         if(!exports.checkDateAvailability(bus.journeyDate)){
-           bus.isAvailable = false;
-         }
-       }
-     
-       await bus.save();
-     
-       })
+        // check date for simple trips
+        if (
+          checkSimpleTripDate(bus)
+        ) {
+          setAvailabilityStatusForSimpleTrips(bus);
+           await bus.save();
+
+        // check date for regular trips
+        } else if (
+          checkRegularTripDate(bus)
+        ) {
+          setAvailabilityStatusForRegularTrips(bus);
+          await bus.save();
+        }
+      })
     },
     null,
     true,
-    "Asia/Katmandu"
+    "Europe/Kiev" // you need change it after update cron package => "Europe/Kiev" is old name of this timezone, new is "Europe/Kyiv"
   );
 };

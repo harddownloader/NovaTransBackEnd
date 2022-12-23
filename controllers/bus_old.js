@@ -1,4 +1,4 @@
-const Bus = require("../models/Bus");
+const { Bus, typeEnumRegularTrip } = require("../models/Bus");
 const _ = require("lodash");
 const sharp = require("sharp");
 const path = require("path");
@@ -259,7 +259,7 @@ exports.update = async (req, res) => {
 
   await bus.save();
 
-  if (bus.body.type === "регулярный") {
+  if (bus.body.type === typeEnumRegularTrip) {
     console.log('it"s regular!')
     // 1 variant = it was regular => regenerate children
     // 2 variant = it was simple => generate children
