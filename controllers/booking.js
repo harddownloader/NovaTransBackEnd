@@ -1,5 +1,5 @@
 const Booking = require("../models/Booking");
-const Bus = require("../models/Bus");
+const { Bus } = require("../models/Bus");
 const Guest = require("../models/Guest");
 const _ = require("lodash");
 
