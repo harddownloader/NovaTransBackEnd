@@ -359,17 +359,23 @@ async function generateChildren(bus, isRmAllChildren=false) {
      * end - records are created only up to this date
      * daysOfTheWeek - array of days(number 0-6) - 1 (Monday), 2 (Tue.), 3 (Wednesday), ... 6 (Saturday), 0 (Sunday)
      */
-    const start = moment(bus.regularDateStart), // first day or range
-      end = moment(bus.regularDateEnd), // last day or range
+    const start = moment(bus.regularDateStart + ' ' + bus.wayStations[0].time), // first day or range //
+      end = moment(bus.regularDateEnd + ' ' + '23:59'), // last day or range
       daysOfTheWeek = [...new Set(bus.regularDaysOfTheWeek)]; // array with unique numbers - [1,2,3,4,5,6,0]
 
 
     daysOfTheWeek.map(async (dayOfTheWeek) => {
       const daysInRange = [];
-      const current = start.clone();
+      const currentDate = start.clone();
+      // we start counting from a week ago to take into account the dates in the current week
+      const current = currentDate.day(currentDate.day() - 7);
 
-      while (current.day(7 + dayOfTheWeek).isBefore(end)) {
-        daysInRange.push(current.clone());
+      while (current.day(7 + dayOfTheWeek).isSameOrBefore(end)) {
+        // we don't take into account dates that have already passed
+        if (current.isSameOrAfter(moment())) {
+          // and we work only with future dates
+          daysInRange.push(current.clone());
+        }
       }
 
       await daysInRange.map(async (day) => {
