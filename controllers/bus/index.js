@@ -452,8 +452,7 @@ async function removeBus(req, res) {
   }
 
   // remove reserved bus bookings
-  // remove(is deprecated) -> deleteMany
-  Booking.remove({ bus: bus._id }, function(err) {
+  Booking.deleteMany({ bus: bus._id }, function(err) {
     if (!err) {
       console.log('All bookings by trip removed');
     }
