@@ -315,9 +315,22 @@ exports.update = async (req, res) => {
 
 // rm all children
 function deleteAllChildren(isRmAllChildren, busId) {
-  const promise = new Promise((resolve, reject) => {
+  const promise = new Promise(async (resolve, reject) => {
     if (isRmAllChildren) {
-      Bus.deleteMany({parentId: busId}, function (err) {
+      const allCreatedBuses = await Bus.find({ parentId: busId });
+      await Promise.all(allCreatedBuses.map(async (trip) => {
+        Booking.deleteMany({bus: trip._id}, function (err) {
+          if (!err) {
+            console.log('All bookings of children removed');
+            resolve(true);
+          } else {
+            console.log('Removing bookings of children - error');
+            reject(false);
+          }
+        });
+      }));
+
+      await Bus.deleteMany({ parentId: busId }, function (err) {
         if (!err) {
           console.log('All children removed');
           resolve(true);

@@ -150,7 +150,7 @@ exports.postBookingMulti = async (req, res) => {
  * @returns array
  */
 async function setNewPostBooking(userauth, bookData, seats, slug) {
-  const allOrders = seats.map(async (seatTicket) => {
+  const allOrders = await Promise.all(seats.map(async (seatTicket) => {
     const booking = new Booking(bookData);
     if (userauth) {
       booking.user = userauth;
@@ -179,8 +179,8 @@ async function setNewPostBooking(userauth, bookData, seats, slug) {
     let isValidSeatNumber = true;
     if (
         typeof seatTicket === 'string' &&
-        bus.soldSeat.includes(seatTicket) ||
-        bus.bookedSeat.includes(seatTicket)
+        bus.soldSeat.map(seat => seat.name).includes(seatTicket) ||
+        bus.bookedSeat.map(seat => seat.name).includes(seatTicket)
     ) {
       isValidSeatNumber = false;
     }
@@ -197,7 +197,10 @@ async function setNewPostBooking(userauth, bookData, seats, slug) {
 
     bus.seatsAvailable -= bookData.passengers || booking.passengers;
 
-    bus.bookedSeat.push(seatTicket);
+    bus.bookedSeat.push({
+      name: seatTicket,
+      id: booking._id
+    });
 
     booking.bus = bus;
     booking.owner = bus.owner;
@@ -206,8 +209,10 @@ async function setNewPostBooking(userauth, bookData, seats, slug) {
     
 
     await bus.save();
-    return await booking.save();
-  });
+    await booking.save();
+
+    return booking;
+  }));
 
   return allOrders;
 }
@@ -222,7 +227,7 @@ exports.postSold = async (req, res) => {
   });
 
   
-  const allOrders = seats.map(async (seatTicket) => {
+  const allOrders = await Promise.all(seats.map(async (seatTicket) => {
     const booking = new Booking(req.body);
     booking.self = req.ownerauth;
 
@@ -232,8 +237,8 @@ exports.postSold = async (req, res) => {
     let isValidSeatNumber = true;
     if (
       typeof seatTicket === 'string' &&
-      bus.soldSeat.includes(seatTicket) ||
-      bus.bookedSeat.includes(seatTicket)
+      bus.soldSeat.map(seat => seat.name).includes(seatTicket) ||
+      bus.bookedSeat.map(seat => seat.name).includes(seatTicket)
     ) {
       isValidSeatNumber = false;
     }
@@ -250,7 +255,10 @@ exports.postSold = async (req, res) => {
 
     bus.seatsAvailable -= booking.passengers;
 
-    bus.soldSeat.push(seatTicket);
+    bus.soldSeat.push({
+      name: seatTicket,
+      id: booking._id
+    });
 
     booking.bus = bus;
     booking.owner = bus.owner;
@@ -259,8 +267,10 @@ exports.postSold = async (req, res) => {
     booking.seatNumber = seatTicket;
     
     await bus.save();
-    return await booking.save();
-  });
+    await booking.save();
+
+    return booking;
+  }));
 
   res.json(allOrders);
 };
@@ -282,13 +292,13 @@ exports.deleteBooking = async (req, res) => {
 
   if (booking.verification === "payed") {
     const removeIndexSold = bus.soldSeat
-      .map(seat => seat.toString())
+      .map(seat => seat.name.toString())
       .indexOf(booking.seatNumber);
 
     bus.soldSeat.splice(removeIndexSold, 1);
   } else {
     const removeIndexBook = bus.bookedSeat
-      .map(seat => seat.toString())
+      .map(seat => seat.name.toString())
       .indexOf(booking.seatNumber);
 
     bus.bookedSeat.splice(removeIndexBook, 1);
