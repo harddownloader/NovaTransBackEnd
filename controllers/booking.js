@@ -1,4 +1,7 @@
-const Booking = require("../models/Booking");
+const {
+  Booking,
+  verificationEnumPayed,
+} = require("../models/Booking");
 const { Bus } = require("../models/Bus");
 const Guest = require("../models/Guest");
 const _ = require("lodash");
@@ -272,7 +275,7 @@ exports.postSold = async (req, res) => {
 
     booking.bus = bus;
     booking.owner = bus.owner;
-    booking.verification = "payed";
+    booking.verification = verificationEnumPayed;
 
     booking.seatNumber = seatTicket;
     
@@ -300,7 +303,7 @@ exports.deleteBooking = async (req, res) => {
 
   const bus = await Bus.findOne({ slug: booking.bus.slug });
 
-  if (booking.verification === "payed") {
+  if (booking.verification === verificationEnumPayed) {
     const removeIndexSold = bus.soldSeat
       .map(seat => seat.name.toString())
       .indexOf(booking.seatNumber);

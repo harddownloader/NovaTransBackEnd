@@ -4,7 +4,7 @@ const {
   typeEnumSimpleTrip,
   typeEnumRegularTrip
 } = require("../../models/Bus");
-const Booking = require("../../models/Booking");
+const { Booking } = require("../../models/Booking");
 const _ = require("lodash");
 const sharp = require("sharp");
 const path = require("path");
