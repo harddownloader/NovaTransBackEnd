@@ -8,7 +8,8 @@ const {
   postBookingMulti,
   postSold,
   deleteBooking,
-  getAllBookings
+  getAllBookings,
+  getAllBookingsByBusId,
 } = require("../controllers/booking");
 
 const { checkUserSignin } = require("../controllers/auth-user");
@@ -21,6 +22,7 @@ const { busBySlug } = require("../controllers/bus");
 
 router.get("/my", requireOwnerSignin, getOwnerBookings);
 router.get("/all", requireSuperadminSignin, getAllBookings);
+router.get("/byBusId/:busId", requireOwnerSignin, getAllBookingsByBusId);
 
 router.post("/sold/:busSlug", requireOwnerSignin, postSold);
 router.post("/book/:busSlug", checkUserSignin, postBooking);
