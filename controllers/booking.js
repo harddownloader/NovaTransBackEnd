@@ -315,6 +315,8 @@ exports.deleteBooking = async (req, res) => {
   }
 
   await booking.remove();
+
+  bus.seatsAvailable += 1;
   await bus.save();
 
   res.json(booking);
