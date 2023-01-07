@@ -5,7 +5,7 @@ const {
 
 
 exports.checkDateAvailability = date => {
-  return new Date(date) < new Date() ? false : true;
+  return new Date(date) <= new Date() ? false : true;
 };
 
 
