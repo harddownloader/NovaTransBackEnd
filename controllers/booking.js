@@ -291,6 +291,27 @@ exports.postSold = async (req, res) => {
 exports.changeVerificationStatus = async (req, res) => {
   const booking = req.booking;
 
+  if (req.body.verification === verificationEnumPayed) {
+    const bus = await Bus.findOne({ slug: booking.bus.slug });
+    if (!bus) {
+      throw new Error('bus isn\'t found!');
+    }
+
+    const currentSeat = await bus.bookedSeat.find((st) => String(st.id) === String(booking._id));
+    if (!currentSeat) {
+      throw new Error('currentSeat isn\'t found!');
+    }
+
+    bus.soldSeat = [
+      ...bus.soldSeat,
+      currentSeat
+    ];
+    bus.bookedSeat = [
+      ...bus.bookedSeat.filter((st) => String(st.id) !== String(booking._id))
+    ];
+    await bus.save();
+  }
+
   booking.verification = req.body.verification;
 
   await booking.save();
