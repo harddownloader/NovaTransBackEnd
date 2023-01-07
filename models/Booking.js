@@ -1,6 +1,11 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
+const verificationEnumNotVerified = "notverified";
+const verificationEnumVerified = "verified";
+const verificationEnumPayed = "payed";
+
+
 const bookingSchema = new mongoose.Schema(
   {
     price: {
@@ -27,11 +32,20 @@ const bookingSchema = new mongoose.Schema(
 
     verification: {
       type: String,
-      enum: ["verified", "notverified", "payed"],
-      default: "notverified"
+      enum: [
+        verificationEnumVerified,
+        verificationEnumNotVerified,
+        verificationEnumPayed,
+      ],
+      default: verificationEnumNotVerified
     }
   },
   { timestamps: true }
 );
 
-module.exports = mongoose.model("Booking", bookingSchema);
+module.exports = {
+  Booking: mongoose.model("Booking", bookingSchema),
+  verificationEnumVerified,
+  verificationEnumNotVerified,
+  verificationEnumPayed,
+}

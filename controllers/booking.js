@@ -1,4 +1,7 @@
-const Booking = require("../models/Booking");
+const {
+  Booking,
+  verificationEnumPayed,
+} = require("../models/Booking");
 const { Bus } = require("../models/Bus");
 const Guest = require("../models/Guest");
 const _ = require("lodash");
@@ -20,6 +23,16 @@ exports.getAllBookings = async (req, res) => {
 
   res.json(bookings);
 };
+
+exports.getAllBookingsByBusId = async (req, res) => {
+  const bookings = await Booking.find({
+    bus: {
+      _id: req.params.busId
+    }
+  });
+
+  res.json(bookings);
+}
 
 exports.getOwnerBookings = async (req, res) => {
   const bookings = await Booking.find({ owner: req.ownerauth }).populate(
@@ -262,7 +275,7 @@ exports.postSold = async (req, res) => {
 
     booking.bus = bus;
     booking.owner = bus.owner;
-    booking.verification = "payed";
+    booking.verification = verificationEnumPayed;
 
     booking.seatNumber = seatTicket;
     
@@ -278,6 +291,27 @@ exports.postSold = async (req, res) => {
 exports.changeVerificationStatus = async (req, res) => {
   const booking = req.booking;
 
+  if (req.body.verification === verificationEnumPayed) {
+    const bus = await Bus.findOne({ slug: booking.bus.slug });
+    if (!bus) {
+      throw new Error('bus isn\'t found!');
+    }
+
+    const currentSeat = await bus.bookedSeat.find((st) => String(st.id) === String(booking._id));
+    if (!currentSeat) {
+      throw new Error('currentSeat isn\'t found!');
+    }
+
+    bus.soldSeat = [
+      ...bus.soldSeat,
+      currentSeat
+    ];
+    bus.bookedSeat = [
+      ...bus.bookedSeat.filter((st) => String(st.id) !== String(booking._id))
+    ];
+    await bus.save();
+  }
+
   booking.verification = req.body.verification;
 
   await booking.save();
@@ -290,7 +324,7 @@ exports.deleteBooking = async (req, res) => {
 
   const bus = await Bus.findOne({ slug: booking.bus.slug });
 
-  if (booking.verification === "payed") {
+  if (booking.verification === verificationEnumPayed) {
     const removeIndexSold = bus.soldSeat
       .map(seat => seat.name.toString())
       .indexOf(booking.seatNumber);
@@ -305,6 +339,8 @@ exports.deleteBooking = async (req, res) => {
   }
 
   await booking.remove();
+
+  bus.seatsAvailable += 1;
   await bus.save();
 
   res.json(booking);
