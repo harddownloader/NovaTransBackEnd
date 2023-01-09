@@ -16,11 +16,6 @@ const StationSchema = new mongoose.Schema({
 const typeEnumSimpleTrip = "обычный";
 const typeEnumRegularTrip = "регулярный";
 const typeEnum = [
-  "AC",
-  "Delux",
-  "Normal",
-  "Suspense AC",
-  "Suspense Delux",
   typeEnumSimpleTrip,
   typeEnumRegularTrip
 ];
