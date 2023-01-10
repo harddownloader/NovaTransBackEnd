@@ -7,13 +7,13 @@ const {
   update,
   read,
   remove,
-  getTravels,
-  travelById
-} = require("../controllers/travel");
+  getCategories,
+  categoryById
+} = require("../controllers/category");
 
 router
   .route("/")
-  .get(getTravels)
+  .get(getCategories)
   .post(requireSuperadminSignin, add);
 
 router
@@ -22,6 +22,6 @@ router
   .put(requireSuperadminSignin, update)
   .delete(requireSuperadminSignin, remove);
 
-router.param("id", travelById);
+router.param("id", categoryById);
 
 module.exports = router;

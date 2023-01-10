@@ -35,7 +35,7 @@ exports.read = (req, res) => {
 exports.getBuses = async (req, res) => {
     const buses = await Bus.find()
         .populate("owner", "name")
-        .populate("travel", "name")
+        .populate("category", "name")
         .sort({ created: -1 });
 
     res.json(buses);
@@ -44,7 +44,7 @@ exports.getBuses = async (req, res) => {
 exports.getAllAvailableBuses = async (req, res) => {
     const buses = await Bus.find({ isAvailable: true })
         .populate("owner", "name phone")
-        .populate("travel", "name")
+        .populate("category", "name")
         .sort({ created: -1 });
 
     console.log({busesL: buses?.length})
@@ -54,7 +54,7 @@ exports.getAllAvailableBuses = async (req, res) => {
 exports.getAllUnavailableBuses = async (req, res) => {
     const buses = await Bus.find({ isAvailable: false })
         .populate("owner", "name phone")
-        .populate("travel", "name")
+        .populate("category", "name")
         .sort({ created: -1 });
 
     res.json(buses);
@@ -63,7 +63,7 @@ exports.getAllUnavailableBuses = async (req, res) => {
 exports.getAvailableBusesOfOwner = async (req, res) => {
     const buses = await Bus.find({ owner: req.ownerauth, isAvailable: true })
         .populate("owner", "name")
-        .populate("travel", "name")
+        .populate("category", "name")
         .sort({ created: -1 });
 
     res.json(buses);
@@ -72,7 +72,7 @@ exports.getAvailableBusesOfOwner = async (req, res) => {
 exports.getUnavailableBusesOfOwner = async (req, res) => {
     const buses = await Bus.find({ owner: req.ownerauth, isAvailable: false })
         .populate("owner", "name")
-        .populate("travel", "name")
+        .populate("category", "name")
         .sort({ created: -1 });
 
     res.json(buses);
@@ -165,7 +165,7 @@ function BusesSearcher({ start, end, dateFrom, dateTo, isRoundTrip }) {
             }
 
             this.tickets = await Bus.find(searchReq)
-                .populate("travel", "name")
+                .populate("category", "name")
                 .populate("startLocation", "name")
                 .populate("endLocation", "name");
 
@@ -190,16 +190,16 @@ function BusesSearcher({ start, end, dateFrom, dateTo, isRoundTrip }) {
 }
 
 exports.searchBusByFilter = async (req, res) => {
-    const { startLocation, endLocation, journeyDate, travel, type } = req.body;
+    const { startLocation, endLocation, journeyDate, category, type } = req.body;
     const bus = await Bus.find({
         startLocation,
         endLocation,
         journeyDate,
         isAvailable: true,
-        travel: { $in: travel },
+        category: { $in: category },
         type: { $in: type }
     })
-        .populate("travel", "name")
+        .populate("category", "name")
         .populate("startLocation", "name")
         .populate("endLocation", "name");
     res.json(bus);
@@ -422,7 +422,7 @@ async function generateChildren(bus, isRmAllChildren=false) {
           updatedAt: bus.updatedAt,
           slug: `${bus.slug}-${dayStr}-${bus._id}`,
           endLocation: bus?.endLocation,
-          travel: bus?.travel,
+          category: bus?.category,
           startLocation: bus?.startLocation,
 
           type: typeEnumSimpleTrip,
