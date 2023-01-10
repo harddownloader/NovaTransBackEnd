@@ -227,14 +227,6 @@ const createTrip = async (req, res) => {
         req.body.image = "busimage/resized/" + image;
     }
 
-    // boardingPoints and droppingPoints we can delete
-    if (req.body.boardingPoints) {
-        req.body.boardingPoints = req.body.boardingPoints.split(",");
-    }
-
-    if (req.body.droppingPoints) {
-        req.body.droppingPoints = req.body.droppingPoints.split(",");
-    }
 
     if (req?.body) req.body = prepareBody(req.body)
 
