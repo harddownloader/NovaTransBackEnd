@@ -33,7 +33,7 @@ app.use("/api/bus", require("./routes/bus"));
 app.use("/api/guests", require("./routes/guest"));
 app.use("/api/locations", require("./routes/location"));
 app.use("/api/owners", require("./routes/owner"));
-app.use("/api/travels", require("./routes/travel"));
+app.use("/api/categories", require("./routes/category"));
 app.use("/api/users", require("./routes/user"));
 
 // Error handling middleware

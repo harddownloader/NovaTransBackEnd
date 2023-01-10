@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const travelSchema = new mongoose.Schema({
+const categorySchema = new mongoose.Schema({
   name: {
     type: String,
     trim: true,
@@ -9,4 +9,4 @@ const travelSchema = new mongoose.Schema({
   },
 });
 
-module.exports = mongoose.model("Travel", travelSchema);
+module.exports = mongoose.model("Category", categorySchema);
