@@ -139,18 +139,6 @@ const busSchema = new mongoose.Schema(
       type: ObjectId,
       ref: "Owner"
     },
-    boardingPoints: [
-      {
-        type: String,
-        trim: true
-      }
-    ],
-    droppingPoints: [
-      {
-        type: String,
-        trim: true
-      }
-    ],
     wayStations: [StationSchema],
     slug: {
       type: String,
