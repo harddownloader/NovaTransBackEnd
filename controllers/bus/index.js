@@ -413,8 +413,6 @@ async function generateChildren(bus, isRmAllChildren=false) {
           name: `${bus?.name} ${dayStr}`,
           fare: bus.fare,
           busNumber: `${bus?.busNumber} ${dayStr} ${bus._id}`, // нельзя, чтобы повторялся
-          journeyDate: dayStr, //bus?.journeyDate, // !
-          journeyDateObj: dayMomentObj,//bus?.journeyDateObj, //!
           departure_time: bus?.departure_time,
           arrivalDate: bus?.arrivalDate, // !
           arrival_time: bus?.arrival_time,
@@ -501,9 +499,6 @@ function prepareBody(body) {
         return station;
       });
     }
-
-    // set date journey like object (for searching tickets)
-    if (body?.journeyDate) body.journeyDateObj = new Date(body.journeyDate);
 
     return body;
 }
