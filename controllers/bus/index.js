@@ -134,34 +134,46 @@ function BusesSearcher({ start, end, dateFrom, dateTo, isRoundTrip }) {
         search: async function () {
             let searchReq
             if (!this.isRoundTrip) searchReq = {
-                wayStations: {
+              $and: [
+                {
+                  wayStations: {
                     $all: [
-                        { "$elemMatch": {"cityId": start}},
-                        { "$elemMatch": {"cityId": end}},
-                    ]
+                      { "$elemMatch": { "cityId": start } },
+                      { "$elemMatch": { "cityId": end } },
+                    ],
+                  },
+                  isAvailable: true,
+                  type: typeEnumSimpleTrip,
                 },
-
-                journeyDateObj: {
+                {
+                  // use search by date only for first object of the wayStations array
+                  'wayStations.0.dateObj': {
                     $gte: dateFrom,
                     $lt: dateTo,
-                },
-                isAvailable: true,
-                type: typeEnumSimpleTrip,
+                  },
+                }
+              ]
             }
             else searchReq = {
-                wayStations: {
+              $and: [
+                {
+                  wayStations: {
                     $all: [
-                        { "$elemMatch": {"cityId": start}},
-                        { "$elemMatch": {"cityId": end}},
+                      { "$elemMatch": {"cityId": start} },
+                      { "$elemMatch": {"cityId": end} },
                     ]
+                  },
+                  isAvailable: true,
+                  type: typeEnumSimpleTrip,
                 },
-
-                journeyDateObj: {
+                {
+                  // use search by date only for first object of the wayStations array
+                  'wayStations.0.dateObj': {
                     $gte: dateFrom,
                     $lt: dateTo,
-                },
-                isAvailable: true,
-                type: typeEnumSimpleTrip,
+                  },
+                }
+              ]
             }
 
             this.tickets = await Bus.find(searchReq)
@@ -415,7 +427,6 @@ async function generateChildren(bus, isRmAllChildren=false) {
           slug: `${bus.slug}-${dayStr}-${bus._id}`,
           endLocation: bus?.endLocation,
           category: bus?.category,
-          startLocation: bus?.startLocation,
 
           type: typeEnumSimpleTrip,
         };
@@ -426,7 +437,8 @@ async function generateChildren(bus, isRmAllChildren=false) {
             station: station.station,
             time: station.time,
             cityId: station.cityId,
-            date: moment(station.date).add(daysDiff, 'days').format("YYYY-MM-DD")
+            date: moment(station.date).add(daysDiff, 'days').format("YYYY-MM-DD"),
+            dateObj: moment(station.date + 'T' + station.time + ':00Z').add(daysDiff, 'days')
           };
         });
 
@@ -480,7 +492,16 @@ exports.remove = async (req, res) => {
 // body Builder
 function prepareBody(body) {
     // decrypt objects and arrays
-    if (body?.wayStations) body.wayStations = getWayStations(body.wayStations);
+    if (body?.wayStations) {
+      const wayStations = getWayStations(body.wayStations);
+      body.wayStations = wayStations.map((station) => {
+        const time = station.time + ':00Z';
+        station.dateObj = moment(station.date + 'T' + time);
+
+        return station;
+      });
+    }
+
     // set date journey like object (for searching tickets)
     if (body?.journeyDate) body.journeyDateObj = new Date(body.journeyDate);
 

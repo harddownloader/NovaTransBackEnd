@@ -7,6 +7,7 @@ const { ObjectId } = mongoose.Schema;
 const StationSchema = new mongoose.Schema({
   id: String,
   date: String,
+  dateObj: Date,
   time: String,
   city: String,
   cityId: String,
@@ -123,7 +124,6 @@ const busSchema = new mongoose.Schema(
       default: false
     },
     category: {type: ObjectId, ref: "Category"},
-    startLocation: { type: ObjectId, ref: "Location" },
     endLocation: { type: ObjectId, ref: "Location" },
 
     journeyDate: {
