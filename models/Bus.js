@@ -119,10 +119,6 @@ const busSchema = new mongoose.Schema(
       default: false
     },
     category: {type: ObjectId, ref: "Category"},
-
-    arrivalDate: {
-      type: String,
-    },
     owner: {
       type: ObjectId,
       ref: "Owner"
