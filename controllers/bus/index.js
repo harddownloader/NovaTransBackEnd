@@ -178,7 +178,6 @@ function BusesSearcher({ start, end, dateFrom, dateTo, isRoundTrip }) {
 
             this.tickets = await Bus.find(searchReq)
                 .populate("category", "name")
-                .populate("startLocation", "name")
                 .populate("endLocation", "name");
 
             return this
@@ -212,7 +211,6 @@ exports.searchBusByFilter = async (req, res) => {
         type: { $in: type }
     })
         .populate("category", "name")
-        .populate("startLocation", "name")
         .populate("endLocation", "name");
     res.json(bus);
 };
