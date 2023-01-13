@@ -178,7 +178,6 @@ function BusesSearcher({ start, end, dateFrom, dateTo, isRoundTrip }) {
 
             this.tickets = await Bus.find(searchReq)
                 .populate("category", "name")
-                .populate("endLocation", "name");
 
             return this
         },
@@ -211,7 +210,6 @@ exports.searchBusByFilter = async (req, res) => {
         type: { $in: type }
     })
         .populate("category", "name")
-        .populate("endLocation", "name");
     res.json(bus);
 };
 
@@ -420,7 +418,6 @@ async function generateChildren(bus, isRmAllChildren=false) {
           createdAt: bus.createdAt,
           updatedAt: bus.updatedAt,
           slug: `${bus.slug}-${dayStr}-${bus._id}`,
-          endLocation: bus?.endLocation,
           category: bus?.category,
 
           type: typeEnumSimpleTrip,

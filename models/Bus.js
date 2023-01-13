@@ -119,7 +119,6 @@ const busSchema = new mongoose.Schema(
       default: false
     },
     category: {type: ObjectId, ref: "Category"},
-    endLocation: { type: ObjectId, ref: "Location" },
 
     arrivalDate: {
       type: String,
