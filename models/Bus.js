@@ -97,11 +97,6 @@ const busSchema = new mongoose.Schema(
     image: {
       type: String
     },
-    departure_time: {
-      type: String,
-      trim: true,
-      maxlength: 32
-    },
     arrival_time: {
       type: String,
       trim: true,

@@ -411,7 +411,6 @@ async function generateChildren(bus, isRmAllChildren=false) {
           name: `${bus?.name} ${dayStr}`,
           fare: bus.fare,
           busNumber: `${bus?.busNumber} ${dayStr} ${bus._id}`, // нельзя, чтобы повторялся
-          departure_time: bus?.departure_time,
           arrivalDate: bus?.arrivalDate, // !
           arrival_time: bus?.arrival_time,
           carrierBrand: bus?.carrierBrand,
