@@ -7,6 +7,7 @@ const { ObjectId } = mongoose.Schema;
 const StationSchema = new mongoose.Schema({
   id: String,
   date: String,
+  dateObj: Date,
   time: String,
   city: String,
   cityId: String,
@@ -96,16 +97,6 @@ const busSchema = new mongoose.Schema(
     image: {
       type: String
     },
-    departure_time: {
-      type: String,
-      trim: true,
-      maxlength: 32
-    },
-    arrival_time: {
-      type: String,
-      trim: true,
-      maxlength: 32
-    },
     carrierBrand: {
       type: String,
       trim: true,
@@ -123,18 +114,6 @@ const busSchema = new mongoose.Schema(
       default: false
     },
     category: {type: ObjectId, ref: "Category"},
-    startLocation: { type: ObjectId, ref: "Location" },
-    endLocation: { type: ObjectId, ref: "Location" },
-
-    journeyDate: {
-      type: String,
-    },
-    journeyDateObj: {
-      type: Date,
-    },
-    arrivalDate: {
-      type: String,
-    },
     owner: {
       type: ObjectId,
       ref: "Owner"
