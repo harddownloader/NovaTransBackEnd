@@ -19,12 +19,16 @@ const { BusesSeats } = require('./../../models/BusesSeats');
 
 
 exports.busBySlug = async (req, res, next, slug) => {
-    const bus = await Bus.findOne({ slug }).populate("owner", "name role");
+    const bus = await Bus.findOne({ slug })
+      .populate("owner", "name role")
+      .populate('busSeatsId');
+
     if (!bus) {
         return res.status(400).json({
             error: "Bus not found"
         });
     }
+
     req.bus = bus; // adds bus object in req with bus info
     next();
 };
@@ -178,6 +182,7 @@ function BusesSearcher({ start, end, dateFrom, dateTo, isRoundTrip }) {
 
             this.tickets = await Bus.find(searchReq)
                 .populate("category", "name")
+                .populate('busSeatsId');
 
             return this
         },
