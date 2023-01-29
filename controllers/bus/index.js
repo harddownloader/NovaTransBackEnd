@@ -188,10 +188,10 @@ function BusesSearcher({ start, end, dateFrom, dateTo, isRoundTrip }) {
         },
         filter: function() {
             const newTicketsList = this.tickets.filter((bus) => {
-                const startIndx = bus.wayStations.findIndex(station => station.cityId === start)
-                const endIndx = bus.wayStations.findIndex(station => station.cityId === end)
+                const startIndex = bus.wayStations.findIndex(station => station.cityId === start)
+                const endIndex = bus.wayStations.findIndex(station => station.cityId === end)
 
-                return startIndx < endIndx
+                return startIndex < endIndex
             })
 
             this.tickets = newTicketsList
