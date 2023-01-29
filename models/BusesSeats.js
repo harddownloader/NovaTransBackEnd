@@ -7,6 +7,11 @@ const busSeatsSchema = new mongoose.Schema({
     default: 59,
     required: true
   },
+  allBlocksCount: {
+    type: Number,
+    maxlength: 4,
+    default: 103,
+  },
   countBlocksInRow: {
     type: Number,
     default: 6,

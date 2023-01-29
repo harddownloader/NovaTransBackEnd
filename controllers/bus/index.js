@@ -9,6 +9,7 @@ const _ = require("lodash");
 const sharp = require("sharp");
 const path = require("path");
 const fs = require("fs");
+const { createStarterTemplate } = require("../bus-seats");
 const {
   checkSimpleTripDate,
   checkRegularTripDate,
@@ -267,24 +268,8 @@ const createTrip = async (req, res) => {
       firstBusesSeats?.seatsCount >= 0
     ) bus.busSeatsId = firstBusesSeats._id;
     else {
-      const newBusesSeats = new BusesSeats({
-        seatsCount: 59,
-        countBlocksInRow: 6,
-        countSeatsInRow: 4,
-        rows: 18,
-        countFreeSeatsInRow: 2,
-        busElements: {
-          driverCoordinates: 0,
-          firstDoorCoordinates: 4,
-          secondDoorCoordinates: 46,
-          wcCoordinates: 40,
-          barCoordinates: 52,
-        },
-        seatsForBusElements: 8, // the number is put down by the selection method
-        additionalRowsForBusElements: 3, // this is the number of additional rows to place the bus elements
-      });
-      const savedBusesSeats = await newBusesSeats.save();
-      bus.busSeatsId = savedBusesSeats._id;
+      const newBusesSeats = await createStarterTemplate();
+      bus.busSeatsId = newBusesSeats._id;
     }
 
     await bus.save();
