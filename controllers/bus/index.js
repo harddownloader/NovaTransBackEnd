@@ -15,6 +15,7 @@ const {
   setAvailabilityStatusForSimpleTrips,
   setAvailabilityStatusForRegularTrips,
 } = require("../../helpers");
+const { BusesSeats } = require('./../../models/BusesSeats');
 
 
 exports.busBySlug = async (req, res, next, slug) => {
@@ -47,7 +48,6 @@ exports.getAllAvailableBuses = async (req, res) => {
         .populate("category", "name")
         .sort({ created: -1 });
 
-    console.log({busesL: buses?.length})
     res.json(buses);
 };
 
@@ -255,6 +255,33 @@ const createTrip = async (req, res) => {
 
     bus.owner = req.ownerauth;
 
+    // check relation by id to BusesSeats collection
+    const firstBusesSeats = await BusesSeats.findOne();
+    if (
+      firstBusesSeats?.seatsCount !== null &&
+      firstBusesSeats?.seatsCount >= 0
+    ) bus.busSeatsId = firstBusesSeats._id;
+    else {
+      const newBusesSeats = new BusesSeats({
+        seatsCount: 59,
+        countBlocksInRow: 6,
+        countSeatsInRow: 4,
+        rows: 18,
+        countFreeSeatsInRow: 2,
+        busElements: {
+          driverCoordinates: 0,
+          firstDoorCoordinates: 4,
+          secondDoorCoordinates: 46,
+          wcCoordinates: 40,
+          barCoordinates: 52,
+        },
+        seatsForBusElements: 8, // the number is put down by the selection method
+        additionalRowsForBusElements: 3, // this is the number of additional rows to place the bus elements
+      });
+      const savedBusesSeats = await newBusesSeats.save();
+      bus.busSeatsId = savedBusesSeats._id;
+    }
+
     await bus.save();
 
     return bus;
@@ -273,8 +300,6 @@ exports.create = async (req, res) => {
 }
 
 exports.update = async (req, res) => {
-    // console.log('update req', req.body)
-    if (req?.body) req.body = prepareBody(req.body)
 
     if (req.file !== undefined) {
         const { filename: image } = req.file;

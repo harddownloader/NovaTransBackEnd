@@ -124,8 +124,13 @@ const busSchema = new mongoose.Schema(
       slug: "name",
       unique: true,
       slug_padding_size: 3
+    },
+    busSeatsId: {
+      type: ObjectId,
+      ref: "BusesSeats"
     }
   },
+
   { timestamps: true }
 );
 
