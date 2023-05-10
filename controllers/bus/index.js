@@ -16,7 +16,6 @@ const {
   setAvailabilityStatusForRegularTrips,
 } = require("../../helpers");
 
-
 exports.busBySlug = async (req, res, next, slug) => {
     const bus = await Bus.findOne({ slug }).populate("owner", "name role");
     if (!bus) {
