@@ -35,6 +35,7 @@ app.use("/api/locations", require("./routes/location"));
 app.use("/api/owners", require("./routes/owner"));
 app.use("/api/categories", require("./routes/category"));
 app.use("/api/users", require("./routes/user"));
+app.use("/api/buses-seats", require("./routes/buses-seats"));
 
 // Error handling middleware
 app.use(function(err, req, res, next) {
