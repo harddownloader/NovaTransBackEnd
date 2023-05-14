@@ -7,8 +7,8 @@ exports.sendEmail = emailData => {
     secure: false,
     requireTLS: true,
     auth: {
-      user: process.env.userEmail,
-      pass: process.env.userPass
+      user: process.env.EMAIL_LOGIN,
+      pass: process.env.EMAIL_PASSWORD
     }
   });
   return transporter
