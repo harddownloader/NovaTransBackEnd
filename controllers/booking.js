@@ -7,7 +7,9 @@ const Guest = require("../models/Guest");
 const _ = require("lodash");
 
 exports.bookingById = async (req, res, next, id) => {
-  const booking = await Booking.findById(id).populate("bus owner guest user");
+  const booking = await Booking
+    .findById(id)
+    .populate("bus owner guest user");
 
   if (!booking) {
     return res.status(400).json({
@@ -17,6 +19,10 @@ exports.bookingById = async (req, res, next, id) => {
   req.booking = booking; // adds booking object in req with booking info
   next();
 };
+
+exports.searchBookingById = async (req, res) => {
+  res.json(req.booking);
+}
 
 exports.getAllBookings = async (req, res) => {
   const bookings = await Booking.find({}).populate("bus owner guest user self");

@@ -69,16 +69,16 @@ exports.refreshToken = async (req, res) => {
   return res.json({ error: "Invalid content" });
 };
 
-exports.requireOwnerSignin = async (req, res, next) => {
+exports.requireOwnerSignIn = async (req, res, next) => {
   const token = req.headers.authorization;
 
   if (token) {
     const owner = parseToken(token);
 
-    const foundowner = await Owner.findById(owner._id).select("name role salt hashed_password");
+    const foundOwner = await Owner.findById(owner._id).select("name role salt hashed_password");
 
-    if (foundowner) {
-      req.ownerauth = foundowner;
+    if (foundOwner) {
+      req.ownerauth = foundOwner;
       next();
     } else res.status(401).json({ error: "Not authorized!" });
   } else {
@@ -94,16 +94,16 @@ function parseToken(token) {
   }
 }
 
-exports.requireSuperadminSignin = async (req, res, next) => {
+exports.requireSuperAdminSignIn = async (req, res, next) => {
   const token = req.headers.authorization;
 
   if (token) {
     const owner = parseToken(token);
 
-    const foundowner = await Owner.findById(owner._id).select("name role");
+    const foundOwner = await Owner.findById(owner._id).select("name role");
 
-    if (foundowner.role === "superadmin") {
-      req.ownerauth = foundowner;
+    if (foundOwner.role === "superadmin") {
+      req.ownerauth = foundOwner;
       next();
     } else res.status(401).json({ error: "Not authorized!" });
   } else {
