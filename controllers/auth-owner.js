@@ -1,6 +1,7 @@
-const Owner = require("../models/Owner");
+const { Owner } = require("../models/Owner");
 const jwt = require("jsonwebtoken");
 const _ = require("lodash");
+const { USER_ROLES } = require("../models/Owner");
 
 exports.signup = async (req, res) => {
   const ownerExists = await Owner.findOne({ email: req.body.email });
@@ -94,6 +95,25 @@ function parseToken(token) {
   }
 }
 
+async function checkCurrentUserRole(token, role) {
+  const owner = await parseToken(token);
+
+  const foundOwner = await Owner.findById(owner._id).select("name role");
+
+  if (foundOwner.role === role) {
+    console.log({foundOwner})
+    return foundOwner
+  }
+
+  return false
+}
+
+async function checkIsThisLoggedInUserSuperAdmin(token) {
+  return await checkCurrentUserRole(token, USER_ROLES.SUPER_ADMIN)
+}
+
+exports.checkIsThisLoggedInUserSuperAdmin = checkIsThisLoggedInUserSuperAdmin
+
 exports.requireSuperAdminSignIn = async (req, res, next) => {
   const token = req.headers.authorization;
 
@@ -102,7 +122,7 @@ exports.requireSuperAdminSignIn = async (req, res, next) => {
 
     const foundOwner = await Owner.findById(owner._id).select("name role");
 
-    if (foundOwner.role === "superadmin") {
+    if (foundOwner.role === USER_ROLES.SUPER_ADMIN) {
       req.ownerauth = foundOwner;
       next();
     } else res.status(401).json({ error: "Not authorized!" });
@@ -136,7 +156,7 @@ exports.isBookingOwner = (req, res, next) => {
     req.booking.owner._id.toString() === req.ownerauth._id.toString();
 
   let adminUser =
-    req.booking && req.ownerauth && req.ownerauth.role === "superadmin";
+    req.booking && req.ownerauth && req.ownerauth.role === USER_ROLES.SUPER_ADMIN;
 
   let isPoster = sameUser || adminUser;
 

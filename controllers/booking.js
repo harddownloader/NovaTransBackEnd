@@ -5,11 +5,17 @@ const {
 const { Bus } = require("../models/Bus");
 const Guest = require("../models/Guest");
 const _ = require("lodash");
+const { checkIsThisLoggedInUserSuperAdmin } = require("./auth-owner");
 
 exports.bookingById = async (req, res, next, id) => {
-  const booking = await Booking
-    .findById(id)
-    .populate("bus owner guest user");
+  const token = req.headers.authorization;
+  let foundOwner = false;
+  if (token) foundOwner = await checkIsThisLoggedInUserSuperAdmin(token); // at this moment, foundOwner is false always, cause we use this request from 'client front'
+
+  const bookingRes = Booking.findById(id)
+  const booking = (token && foundOwner)
+    ? await bookingRes.populate("bus owner guest user")
+    : await bookingRes.populate("bus guest user");
 
   if (!booking) {
     return res.status(400).json({
@@ -237,7 +243,9 @@ async function setNewPostBooking(userauth, bookData, seats, slug) {
 }
 
 exports.postSold = async (req, res) => {
-  const seats = JSON.parse(req.body?.seatNumber); // array with strings
+  const seats = JSON.parse(req.body)?.seatNumber; // array with strings
+  console.warn('here we can have some issues, cause on front side we covert req.body to string');
+
   if (
     !seats?.length ||
     !Array.isArray(seats)

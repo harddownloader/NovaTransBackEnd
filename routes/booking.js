@@ -13,7 +13,7 @@ const {
   getAllBookingsByBusId,
 } = require("../controllers/booking");
 
-const { checkUserSignin } = require("../controllers/auth-user");
+const { checkUserSignIn } = require("../controllers/auth-user");
 const {
   requireOwnerSignIn,
   isBookingOwner,
@@ -26,8 +26,8 @@ router.get("/all", requireSuperAdminSignIn, getAllBookings);
 router.get("/byBusId/:busId", requireOwnerSignIn, getAllBookingsByBusId);
 
 router.post("/sold/:busSlug", requireOwnerSignIn, postSold);
-router.post("/book/:busSlug", checkUserSignin, postBooking);
-router.post("/milti-book", checkUserSignin, postBookingMulti);
+router.post("/book/:busSlug", checkUserSignIn, postBooking);
+router.post("/milti-book", checkUserSignIn, postBookingMulti);
 
 router.get('/:bookingId', searchBookingById);
 router.patch("/:bookingId", requireOwnerSignIn, changeVerificationStatus);
