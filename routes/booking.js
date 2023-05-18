@@ -27,7 +27,7 @@ router.get("/byBusId/:busId", requireOwnerSignIn, getAllBookingsByBusId);
 
 router.post("/sold/:busSlug", requireOwnerSignIn, postSold);
 router.post("/book/:busSlug", checkUserSignIn, postBooking);
-router.post("/milti-book", checkUserSignIn, postBookingMulti);
+router.post("/multi-book", checkUserSignIn, postBookingMulti);
 
 router.get('/:bookingId', searchBookingById);
 router.patch("/:bookingId", requireOwnerSignIn, changeVerificationStatus);
