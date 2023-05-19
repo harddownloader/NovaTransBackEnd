@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { requireOwnerSignin, isPoster } = require("../controllers/auth-owner");
+const { requireOwnerSignIn, isPoster } = require("../controllers/auth-owner");
 
 const {
   read,
@@ -22,16 +22,16 @@ const { uploadBusImage } = require("../helpers");
 router
   .route("/")
   .get(getBuses)
-  .post(requireOwnerSignin, uploadBusImage, create);
+  .post(requireOwnerSignIn, uploadBusImage, create);
 
 router.get(
   "/owner-bus-available",
-  requireOwnerSignin,
+  requireOwnerSignIn,
   getAvailableBusesOfOwner
 );
 router.get(
   "/owner-bus-unavailable",
-  requireOwnerSignin,
+  requireOwnerSignIn,
   getUnavailableBusesOfOwner
 );
 
@@ -44,8 +44,8 @@ router.post("/filter", searchBusByFilter);
 router
   .route("/:busSlug")
   .get(read)
-  .put(requireOwnerSignin, isPoster, uploadBusImage, update)
-  .delete(requireOwnerSignin, isPoster, remove);
+  .put(requireOwnerSignIn, isPoster, uploadBusImage, update)
+  .delete(requireOwnerSignIn, isPoster, remove);
 
 router.param("busSlug", busBySlug);
 

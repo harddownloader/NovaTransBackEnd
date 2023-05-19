@@ -50,7 +50,7 @@ exports.signin = async (req, res) => {
   return res.json({ token });
 };
 
-exports.requireUserSignin = async (req, res, next) => {
+exports.requireUserSignIn = async (req, res, next) => {
   const token = req.headers.authorization;
 
   if (token) {
@@ -67,16 +67,16 @@ exports.requireUserSignin = async (req, res, next) => {
   }
 };
 
-exports.checkUserSignin = async (req, res, next) => {
+exports.checkUserSignIn = async (req, res, next) => {
   const token = req.headers.authorization;
 
   if (token) {
     const user = parseToken(token);
 
-    const founduser = await User.findById(user._id).select("name");
+    const foundUser = await User.findById(user._id).select("name");
 
-    if (founduser) {
-      req.userauth = founduser;
+    if (foundUser) {
+      req.userauth = foundUser;
     }
   }
   next();

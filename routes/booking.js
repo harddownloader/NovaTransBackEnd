@@ -2,6 +2,7 @@ const router = require("express").Router();
 
 const {
   bookingById,
+  searchBookingById,
   getOwnerBookings,
   changeVerificationStatus,
   postBooking,
@@ -12,26 +13,29 @@ const {
   getAllBookingsByBusId,
 } = require("../controllers/booking");
 
-const { checkUserSignin } = require("../controllers/auth-user");
+const { checkUserSignIn } = require("../controllers/auth-user");
 const {
-  requireOwnerSignin,
+  requireOwnerSignIn,
   isBookingOwner,
-  requireSuperadminSignin
+  requireSuperAdminSignIn
 } = require("../controllers/auth-owner");
 const { busBySlug } = require("../controllers/bus");
 
-router.get("/my", requireOwnerSignin, getOwnerBookings);
-router.get("/all", requireSuperadminSignin, getAllBookings);
-router.get("/byBusId/:busId", requireOwnerSignin, getAllBookingsByBusId);
+router.get("/my", requireOwnerSignIn, getOwnerBookings);
+router.get("/all", requireSuperAdminSignIn, getAllBookings);
+router.get("/byBusId/:busId", requireOwnerSignIn, getAllBookingsByBusId);
 
-router.post("/sold/:busSlug", requireOwnerSignin, postSold);
-router.post("/book/:busSlug", checkUserSignin, postBooking);
-router.post("/milti-book", checkUserSignin, postBookingMulti);
+router.post("/sold/:busSlug", requireOwnerSignIn, postSold);
+router.post("/book/:busSlug", checkUserSignIn, postBooking);
+router.post("/multi-book", checkUserSignIn, postBookingMulti);
 
-router.patch("/:bookingId", requireOwnerSignin, changeVerificationStatus);
-router.delete("/:bookingId", requireOwnerSignin, isBookingOwner, deleteBooking);
+router.get('/:bookingId', searchBookingById);
+router.patch("/:bookingId", requireOwnerSignIn, changeVerificationStatus);
+router.delete("/:bookingId", requireOwnerSignIn, isBookingOwner, deleteBooking);
 
 router.param("busSlug", busBySlug);
 router.param("bookingId", bookingById);
+
+
 
 module.exports = router;

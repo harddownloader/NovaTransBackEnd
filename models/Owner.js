@@ -2,6 +2,11 @@ const mongoose = require("mongoose");
 const uuidv1 = require("uuid/v1");
 const crypto = require("crypto");
 
+const USER_ROLES = {
+  OWNER: "owner",
+  SUPER_ADMIN: "superadmin"
+}
+
 const ownerSchema = new mongoose.Schema(
   {
     name: {
@@ -38,8 +43,8 @@ const ownerSchema = new mongoose.Schema(
     salt: String,
     role: {
       type: String,
-      enum: ["owner", "superadmin"],
-      default: "owner"
+      enum: [USER_ROLES.OWNER, USER_ROLES.SUPER_ADMIN],
+      default: USER_ROLES.OWNER
     }
   },
   { timestamps: true }
@@ -79,4 +84,7 @@ ownerSchema.methods = {
   }
 };
 
-module.exports = mongoose.model("Owner", ownerSchema);
+module.exports = {
+  Owner: mongoose.model("Owner", ownerSchema),
+  USER_ROLES,
+};
