@@ -1,4 +1,4 @@
-const Owner = require("../models/Owner");
+const { Owner } = require("../models/Owner");
 const _ = require("lodash");
 const sharp = require("sharp");
 const path = require("path");

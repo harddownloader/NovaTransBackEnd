@@ -1,6 +1,6 @@
 const router = require("express").Router();
 const {
-  requireSuperadminSignin,
+  requireSuperAdminSignIn,
 } = require("../controllers/auth-owner");
 const {
   add,
@@ -14,13 +14,13 @@ const {
 router
   .route("/")
   .get(getCategories)
-  .post(requireSuperadminSignin, add);
+  .post(requireSuperAdminSignIn, add);
 
 router
   .route("/:id")
-  .get(requireSuperadminSignin, read)
-  .put(requireSuperadminSignin, update)
-  .delete(requireSuperadminSignin, remove);
+  .get(requireSuperAdminSignIn, read)
+  .put(requireSuperAdminSignIn, update)
+  .delete(requireSuperAdminSignIn, remove);
 
 router.param("id", categoryById);
 
