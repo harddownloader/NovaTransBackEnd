@@ -2,7 +2,7 @@ const Guest = require("../models/Guest");
 const mongoose = require("mongoose");
 
 exports.getAllGuests = async (req, res) => {
-  const guests = await Guest.find().sort({ created: -1 }).select("name email phone createdAt updatedAt address");
+  const guests = await Guest.find().sort({ created: -1 }).select("name email phone createdAt updatedAt");
 
   res.json(guests);
 };
