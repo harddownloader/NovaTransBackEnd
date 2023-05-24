@@ -15,12 +15,6 @@ const ownerSchema = new mongoose.Schema(
       required: true,
       maxlength: 32
     },
-    citizenshipNumber: {
-      type: String,
-      trim: true,
-      required: true,
-      maxlength: 32
-    },
     phone: {
       type: Number,
       max: 999999999999,
