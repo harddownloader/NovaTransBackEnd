@@ -64,8 +64,7 @@ exports.postBooking = async (req, res) => {
     !userauth && (
       !req.body?.name ||
       !req.body?.email ||
-      !req.body?.phone ||
-      !req.body?.address
+      !req.body?.phone
     )
   ) return res.status(400).json({
     error: "User data isn't correct"
@@ -103,7 +102,6 @@ exports.postBooking = async (req, res) => {
  *  name: 'John',
  *  email: 'john@gmail.com',
  *  phone: 1823673827712,
- *  address: 'Lendersa 8'
  *  tickets: [
  *    {
  *      seats: ['A1', 'A2'],
@@ -119,8 +117,7 @@ exports.postBookingMulti = async (req, res) => {
     !userauth && (
       !req.body?.name ||
       !req.body?.email ||
-      !req.body?.phone ||
-      !req.body?.address
+      !req.body?.phone
     )
   ) return res.status(400).json({
     error: "User data isn't correct"
@@ -183,7 +180,6 @@ async function setNewPostBooking(userauth, bookData, seats, slug) {
       const name = bookData.name;
       const email = bookData.email;
       const phone = bookData.phone;
-      const address = bookData.address;
 
       let user = await Guest.findOne({ phone });
 
@@ -192,7 +188,7 @@ async function setNewPostBooking(userauth, bookData, seats, slug) {
         await user.save();
         booking.guest = user;
       } else {
-        const guest = new Guest({ name, email, phone, address });
+        const guest = new Guest({ name, email, phone });
         await guest.save();
         booking.guest = guest;
       }

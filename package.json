@@ -1,9 +1,6 @@
 {
   "name": "nova-trans",
   "version": "1.0.0",
-  "engines": {
-    "node": "14.x"
-  },
   "main": "server.js",
   "repository": "https://github.com/harddownloader/NovaTransBackEnd.git",
   "author": "Serafim Krutskevich <serafim-krus@outlook.com>",

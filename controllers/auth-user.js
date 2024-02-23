@@ -180,7 +180,7 @@ exports.forgotPassword = async (req, res) => {
 
   // email data
   const emailData = {
-    from: "noreply@dhangaadi.com",
+    from: process.env.EMAIL_TO_SEND,
     to: email,
     subject: "Password Reset Instructions",
     text: `Please use the following link to reset your password: ${process.env.CLIENT_URL}/reset-password/${token}`,
