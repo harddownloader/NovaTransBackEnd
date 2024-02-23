@@ -9,8 +9,8 @@ exports.signup = async (req, res) => {
     return res.status(403).json({
       error: "Email is taken!"
     });
-  const newowner = new Owner(req.body);
-  const owner = await newowner.save();
+  const newOwner = new Owner(req.body);
+  const owner = await newOwner.save();
 
   owner.salt = undefined;
   owner.hashed_password = undefined;
@@ -51,6 +51,8 @@ exports.refreshToken = async (req, res) => {
   if (req.body && req.body._id) {
     const owner = await Owner.findOne({ _id: req.body._id });
 
+    if (!owner) return res.status(400).json({ error: "User not found" });
+
     const payload = {
       _id: owner.id,
       name: owner.name,
@@ -67,7 +69,7 @@ exports.refreshToken = async (req, res) => {
 
     return res.json({ token });
   }
-  return res.json({ error: "Invalid content" });
+  return res.status(400).json({ error: "Invalid content" });
 };
 
 exports.requireOwnerSignIn = async (req, res, next) => {
@@ -132,14 +134,14 @@ exports.requireSuperAdminSignIn = async (req, res, next) => {
 };
 
 exports.isPoster = (req, res, next) => {
-  let sameUser =
+  const sameUser =
     req.bus &&
     req.ownerauth &&
     req.bus.owner._id.toString() === req.ownerauth._id.toString();
-  let adminUser =
+  const adminUser =
     req.bus && req.ownerauth && req.ownerauth.role === "superadmin";
 
-  let isPoster = sameUser || adminUser;
+  const isPoster = sameUser || adminUser;
 
   if (!isPoster) {
     return res.status(403).json({
@@ -150,15 +152,15 @@ exports.isPoster = (req, res, next) => {
 };
 
 exports.isBookingOwner = (req, res, next) => {
-  let sameUser =
+  const sameUser =
     req.booking &&
     req.ownerauth &&
     req.booking.owner._id.toString() === req.ownerauth._id.toString();
 
-  let adminUser =
+  const adminUser =
     req.booking && req.ownerauth && req.ownerauth.role === USER_ROLES.SUPER_ADMIN;
 
-  let isPoster = sameUser || adminUser;
+  const isPoster = sameUser || adminUser;
 
   if (!isPoster) {
     return res.status(403).json({
@@ -169,7 +171,7 @@ exports.isBookingOwner = (req, res, next) => {
 };
 
 exports.isAuth = (req, res, next) => {
-  let user =
+  const user =
     req.ownerprofile &&
     req.ownerauth &&
     req.ownerprofile._id.toString() === req.ownerauth._id.toString();

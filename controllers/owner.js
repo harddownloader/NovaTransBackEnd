@@ -33,7 +33,7 @@ exports.update = async (req, res) => {
   if (req.file !== undefined) {
     const { filename: photo } = req.file;
 
-    //Compress photo
+    // Compress photo
     await sharp(req.file.path)
       .resize(800)
       .jpeg({ quality: 100 })

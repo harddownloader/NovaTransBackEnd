@@ -4,4 +4,4 @@ If you are running this project on Windows, then please install Visual Studio C+
 https://visualstudio.microsoft.com/ru/thank-you-downloading-visual-studio/?sku=BuildTools
 
 ## Run dev server
-nvm use 14.16.0 && yarn dev
+nvm use 18.17.0 && yarn dev
